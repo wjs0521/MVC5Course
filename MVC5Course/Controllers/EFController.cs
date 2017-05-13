@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using MVC5Course.Models;
+using System.Data.Entity.Validation;
 
 namespace MVC5Course.Controllers
 {
@@ -14,7 +15,7 @@ namespace MVC5Course.Controllers
         public ActionResult Index()
         {
             var all = db.Product.AsQueryable();
-            var data = all.Where(p => p.Active == true && p.ProductName.Contains("Black"));
+            var data = all.Where(p => p.is刪除 == false && p.Active == true && p.ProductName.Contains("Black"));
 
             return View(data);
         }
@@ -70,12 +71,30 @@ namespace MVC5Course.Controllers
             //    db.OrderLine.Remove(item);
             //}
 
-            db.OrderLine.RemoveRange(data.OrderLine);
+            //db.OrderLine.RemoveRange(data.OrderLine);
 
-            db.Product.Remove(data);
-            db.SaveChanges();
+            //db.Product.Remove(data);
+            //db.SaveChanges();
 
+            //return RedirectToAction("Index");
+
+            data.is刪除 = true;
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbEntityValidationException ex)
+            {
+                throw ex;
+            }
             return RedirectToAction("Index");
+        }
+
+        public ActionResult Details(int id)
+        {
+            var data = db.Database.SqlQuery<Product>("SELECT * FROM dbo.Product WHERE ProductId=@p0", id).FirstOrDefault();
+
+            return View(data);
         }
     }
 }
