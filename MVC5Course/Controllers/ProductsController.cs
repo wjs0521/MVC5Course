@@ -11,7 +11,7 @@ using MVC5Course.Models.ViewModels;
 
 namespace MVC5Course.Controllers
 {
-    public class ProductsController : Controller
+    public class ProductsController : BaseController
     {
         ProductRepository repo = RepositoryHelper.GetProductRepository();
 
@@ -133,19 +133,41 @@ namespace MVC5Course.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult ListProducts()
+        //public ActionResult ListProducts(FormCollection form)
+        public ActionResult ListProducts(ProductListSearchVM searchCondition)
         {
             //var data = db.Product
-            var data = repo.GetProduct列表頁所有資料(true)
-                .Where(p => p.Active == true)
-                .Select(p => new ProductLiteVM {
+            var data = repo.GetProduct列表頁所有資料(true);
+
+            //if (!String.IsNullOrEmpty(form["q"]))
+            if (ModelState.IsValid)
+            {
+                if (!String.IsNullOrEmpty(searchCondition.q))
+                {
+                    //var keyword = form["q"];
+
+                    data = data.Where(p => p.ProductName.Contains(searchCondition.q));
+                }
+                //.Where(p => p.Active == true)
+                //.Select(p => new ProductLiteVM {
+                //    ProductId = p.ProductId,
+                //    ProductName = p.ProductName,
+                //    Price = p.Price,
+                //    Stock = p.Stock
+                //});
+                //.Take(10);
+                data = data.Where(p => p.Stock > searchCondition.Stock_S && p.Stock < searchCondition.Stock_E);
+            }
+
+                ViewData.Model = data
+                .Select(p => new ProductLiteVM
+                {
                     ProductId = p.ProductId,
                     ProductName = p.ProductName,
                     Price = p.Price,
                     Stock = p.Stock
                 });
-                //.Take(10);
-            return View(data);
+            return View();
         }
 
         public ActionResult CreateProduct()
@@ -158,7 +180,8 @@ namespace MVC5Course.Controllers
         {
             if (ModelState.IsValid)
             {
-                return RedirectToAction("ListProduct");
+                TempData["Create_Product_Result"] = "商品建立成功";
+                return RedirectToAction("ListProducts");
             }
 
 
